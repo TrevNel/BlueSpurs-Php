@@ -1,11 +1,22 @@
 <?php
 
 class curlClient {
+	/**
+	* Quick setup, decided against a complex design
+	*/
 	public function __construct() {
 
 	}
 
-	public function send($url, $method = "GET", $content, $additionalHeaders) {
+	/**
+	* Sends the rest request to the supplied url
+	* @param $url STRING - the url you would like to make the rest request against
+	* @param $method STRING - default > GET - The http method used for the rest request
+	* @param $content STRING - the content you would like to send via PUT or POST
+	* @return STRING[]
+	* @throws Exception
+	*/
+	public function send($url, $method = "GET", $content) {
 		$handle = curl_init();
 		switch($method)
 		{
@@ -27,7 +38,6 @@ class curlClient {
 				curl_setopt($handle, CURLOPT_CUSTOMREQUEST, 'DELETE');
 			break;
 		}
-		curl_setopt($handle, CURLOPT_HTTPHEADER, $additionalHeaders);
 		curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, false);
 		curl_setopt($handle, CURLOPT_SSL_VERIFYHOST, false);
 		curl_setopt($handle, CURLOPT_URL, $url);
@@ -57,7 +67,7 @@ class curlClient {
 			throw new Exception("Host is unreachable.",0);
 		} elseif($headers["http_code"] == 302){
 			$url = $headers['Location'];
-			return $this->send($url, $method, $content, $additionalHeaders);
+			return $this->send($url, $method, $content);
 		}
 
 		if($headers["http_code"] >= 400) {
@@ -83,6 +93,11 @@ class curlClient {
 		return array("headers" => $headers, "body" => $body);
 	}
 
+	/**
+	* parses the headers to return key value pairs for the header
+	* @param $headers STRING 
+	* @return array()
+	*/
 	private function http_parse_headers($headers) {
 		$retVal = array();
 		$fields = explode("\r\n", preg_replace('/\x0D\x0A[\x09\x20]+/', ' ', $headers));
